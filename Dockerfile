@@ -62,7 +62,18 @@ RUN sed -i \
     -e 's/pub_point_cloud:.*/pub_point_cloud: true/' \
     -e 's/dense_map_enable:.*/dense_map_enable: true/' \
     src/VoxelMap/config/velodyne.yaml
-    
+
+# VoxelMap stamps its outputs with ros::Time::now(). The run script replays the
+# bag with the clock option and passes use_sim_time:=true, but the upstream
+# launch file never declares that argument, so roslaunch ignores it. The
+# trajectory then carries wall-clock stamps that share no timestamps with the
+# ground truth, and the benchmark row comes out empty. Declare the argument and
+# map it onto the /use_sim_time parameter. The grep fails the build if the
+# upstream launch file stops matching.
+RUN LAUNCH=src/VoxelMap/launch/mapping_velodyne.launch && \
+    sed -i 's|<launch>|<launch>\n    <arg name="use_sim_time" default="false" />\n    <param name="/use_sim_time" type="bool" value="$(arg use_sim_time)" />|' "$LAUNCH" && \
+    grep -q 'name="/use_sim_time"' "$LAUNCH"
+
 RUN source /opt/ros/noetic/setup.bash && \
     source /ws_livox/devel/setup.bash && \
     catkin_make
