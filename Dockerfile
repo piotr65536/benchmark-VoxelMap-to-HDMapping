@@ -74,8 +74,15 @@ RUN LAUNCH=src/VoxelMap/launch/mapping_velodyne.launch && \
     sed -i 's|<launch>|<launch>\n    <arg name="use_sim_time" default="false" />\n    <param name="/use_sim_time" type="bool" value="$(arg use_sim_time)" />|' "$LAUNCH" && \
     grep -q 'name="/use_sim_time"' "$LAUNCH"
 
+# src/ contains its own copy of livox_ros_driver, which takes precedence over
+# /ws_livox, and VoxelMap includes the livox_ros_driver/CustomMsg.h it
+# generates. In one parallel catkin_make, VoxelMap can compile before that
+# header exists ("fatal error: livox_ros_driver/CustomMsg.h: No such file or
+# directory"), which happens on machines with many cores. Build the driver
+# first, the same way the C3P-VoxelMap benchmark does.
 RUN source /opt/ros/noetic/setup.bash && \
     source /ws_livox/devel/setup.bash && \
+    catkin_make --pkg livox_ros_driver && \
     catkin_make
     
 ARG UID=1000
