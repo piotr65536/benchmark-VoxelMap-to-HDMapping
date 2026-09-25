@@ -23,7 +23,7 @@ Clone the repo
 ```shell
 mkdir -p /test_ws/src
 cd /test_ws/src
-git clone https://github.com/marcinmatecki/VoxelMap-to-HDMapping.git --recursive
+git clone https://github.com/MapsHD/benchmark-VoxelMap-to-HDMapping.git --recursive
 cd ..
 catkin_make
 ```
